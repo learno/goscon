@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
+	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"runtime"
@@ -29,6 +31,7 @@ func usage() {
 type Options struct {
 	ConfigFile string
 	LocalAddr  string
+	HttpAddr   string
 	LogLevel   uint
 	Timeout    uint
 	SendBuf    uint
@@ -56,6 +59,11 @@ type ReuseConn struct {
 	req  *ReuseConnReq
 }
 
+type QueryRemoteAddr struct {
+	arg   string
+	retCh chan string
+}
+
 type ReuseError struct {
 	rc   *ReuseConn
 	code uint32
@@ -75,6 +83,7 @@ type Daemon struct {
 
 	// links
 	links map[uint32]*StableLink
+	addrs map[string]string
 
 	// event channel
 	// *StableLink new conn
@@ -209,8 +218,10 @@ func handleClient(source *net.TCPConn) {
 func onEventLink(link *StableLink) {
 	if !link.IsBroken() {
 		daemon.links[link.id] = link
+		daemon.addrs[link.local.LocalAddr().String()] = link.remote.RemoteAddr().String()
 	} else {
 		delete(daemon.links, link.id)
+		delete(daemon.addrs, link.local.LocalAddr().String())
 		daemon.nextidCh <- link.id
 	}
 }
@@ -230,6 +241,12 @@ func onEventReuse(rc *ReuseConn) {
 	}
 }
 
+func onEventQueryRemoteAddr(req *QueryRemoteAddr) {
+	remote_addr := daemon.addrs[req.arg]
+	// Debug("onEventQueryRemoteAddr, arg:%s, ret:%s", req.arg, remote_addr)
+	req.retCh <- remote_addr
+}
+
 func dispatch() {
 	for {
 		event := <-daemon.eventCh
@@ -238,6 +255,8 @@ func dispatch() {
 			onEventLink(event)
 		case *ReuseConn:
 			onEventReuse(event)
+		case *QueryRemoteAddr:
+			onEventQueryRemoteAddr(event)
 		}
 	}
 }
@@ -331,8 +350,41 @@ func handleSignal() {
 	}
 }
 
+func httpGetRemoteAddr(w http.ResponseWriter, req *http.Request) {
+	local_addr := ""
+	queryForm, err := url.ParseQuery(req.URL.RawQuery)
+	if err == nil && len(queryForm["addr"]) > 0 {
+		local_addr = queryForm["addr"][0]
+	}
+
+	// 不能写remote_addr := daemon.addrs[local_addr]
+	// 直接取会导致多个线程对同一个map同时读写, 所以转用事件的方式
+	query := new(QueryRemoteAddr)
+	query.arg = local_addr
+	query.retCh = make(chan string, 1)
+
+	// Debug("get_remote_addr.0, local:%s", local_addr)
+	daemon.eventCh <- query
+	remote_addr := <-query.retCh
+
+	Debug("get_remote_addr:%s is from:%s", local_addr, remote_addr)
+	fmt.Fprintf(w, remote_addr)
+}
+
+func handleHttp(addr string) {
+	http.HandleFunc("/get_remote_addr", httpGetRemoteAddr)
+	Info("start http service<%s>", addr)
+	err := http.ListenAndServe(addr, nil)
+	if err != nil {
+		Error("start http service<%s> failed:%s", addr, err.Error())
+		os.Exit(1)
+		return
+	}
+}
+
 func argsCheck() {
 	flag.StringVar(&options.LocalAddr, "listen_addr", "0.0.0.0:1248", "local listen port(0.0.0.0:1248)")
+	flag.StringVar(&options.HttpAddr, "http_addr", "127.0.0.1:1249", "http listen port(127.0.0.1:1249)")
 	flag.UintVar(&options.LogLevel, "log", 3, "larger value for detail log")
 	flag.UintVar(&options.Timeout, "timeout", 30, "reuse timeout")
 	flag.UintVar(&options.SendBuf, "sbuf", 16384, "send buffer")
@@ -373,12 +425,14 @@ func main() {
 	}
 
 	daemon.links = make(map[uint32]*StableLink)
+	daemon.addrs = make(map[string]string)
 	daemon.eventCh = make(chan interface{})
 	daemon.errCh = make(chan *ReuseError, 1024)
 
 	// run
 	Info("goscon started")
 	go handleSignal()
+	go handleHttp(options.HttpAddr)
 	start()
 	daemon.wg.Wait()
 }
