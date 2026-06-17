@@ -36,6 +36,7 @@ func init() {
 	viper.SetDefault("tcp_option.read_timeout", 0)        // tcp read_timeout: 0, never timeout
 	viper.SetDefault("tcp_option.keepalive", true)        // tcp keepalive: true
 	viper.SetDefault("tcp_option.keepalive_interval", 60) // tcp keepalive_interval: 60s
+	viper.SetDefault("tcp_option.keepalive_count", 0)     // tcp keepalive_count: 0, use OS default
 
 	viper.SetDefault("kcp_option.reuseport", runtime.NumCPU()) // kcp reuseport: count of cpu, 利用端口复用的特性，同时开启多个 Goroutine 监听端口，默认为cpu核数
 	viper.SetDefault("kcp_option.read_timeout", 60)            // kcp read_timeout: 60s, 接收数据超时时间，超时会关闭客户端对应连接

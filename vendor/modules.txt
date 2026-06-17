@@ -1,10 +1,14 @@
 # github.com/beorn7/perks v1.0.0
+## explicit; go 1.12
 github.com/beorn7/perks/quantile
 # github.com/fsnotify/fsnotify v1.4.7
+## explicit
 github.com/fsnotify/fsnotify
 # github.com/golang/protobuf v1.3.1
+## explicit
 github.com/golang/protobuf/proto
 # github.com/hashicorp/hcl v1.0.0
+## explicit
 github.com/hashicorp/hcl
 github.com/hashicorp/hcl/hcl/ast
 github.com/hashicorp/hcl/hcl/parser
@@ -16,58 +20,84 @@ github.com/hashicorp/hcl/json/parser
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
 # github.com/klauspost/cpuid v1.2.1
+## explicit
 github.com/klauspost/cpuid
 # github.com/klauspost/reedsolomon v1.9.3
+## explicit
 github.com/klauspost/reedsolomon
 # github.com/libp2p/go-reuseport v0.0.1
+## explicit
 github.com/libp2p/go-reuseport
 # github.com/magiconair/properties v1.8.0
+## explicit
 github.com/magiconair/properties
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
+## explicit
 github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/mitchellh/mapstructure v1.1.2
+## explicit
 github.com/mitchellh/mapstructure
 # github.com/pelletier/go-toml v1.2.0
+## explicit
 github.com/pelletier/go-toml
 # github.com/pkg/errors v0.8.1
+## explicit
 github.com/pkg/errors
 # github.com/prometheus/client_golang v1.0.0
+## explicit
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
 github.com/prometheus/client_golang/prometheus/promhttp
 # github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90
+## explicit; go 1.9
 github.com/prometheus/client_model/go
 # github.com/prometheus/common v0.4.1
+## explicit
 github.com/prometheus/common/expfmt
 github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
 github.com/prometheus/common/model
 # github.com/prometheus/procfs v0.0.2
+## explicit
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 # github.com/spf13/afero v1.1.2
+## explicit
 github.com/spf13/afero
 github.com/spf13/afero/mem
 # github.com/spf13/cast v1.3.0
+## explicit
 github.com/spf13/cast
 # github.com/spf13/jwalterweatherman v1.0.0
+## explicit
 github.com/spf13/jwalterweatherman
 # github.com/spf13/pflag v1.0.3
+## explicit
 github.com/spf13/pflag
 # github.com/spf13/viper v1.4.0
+## explicit
 github.com/spf13/viper
 # github.com/templexxx/cpufeat v0.0.0-20180724012125-cef66df7f161
+## explicit
 github.com/templexxx/cpufeat
 # github.com/templexxx/xor v0.0.0-20181023030647-4e92f724b73b
+## explicit
 github.com/templexxx/xor
 # github.com/tjfoc/gmsm v1.0.1
+## explicit
 github.com/tjfoc/gmsm/sm4
 # github.com/xjdrew/glog v0.0.0-20191120014404-9a6d6b19a763
+## explicit
 github.com/xjdrew/glog
 # github.com/xjdrew/gosproto v0.1.0
+## explicit; go 1.13
 github.com/xjdrew/gosproto
 # github.com/xtaci/kcp-go v5.4.20+incompatible
+## explicit
 github.com/xtaci/kcp-go
+# github.com/xtaci/lossyconn v0.0.0-20190602105132-8df528c0c9ae
+## explicit
 # golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
+## explicit
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
 golang.org/x/crypto/internal/subtle
@@ -78,16 +108,20 @@ golang.org/x/crypto/tea
 golang.org/x/crypto/twofish
 golang.org/x/crypto/xtea
 # golang.org/x/net v0.0.0-20191011234655-491137f69257
+## explicit; go 1.11
 golang.org/x/net/bpf
 golang.org/x/net/internal/iana
 golang.org/x/net/internal/socket
 golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 # golang.org/x/sys v0.0.0-20190412213103-97732733099d
+## explicit; go 1.12
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.0
+## explicit
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
 # gopkg.in/yaml.v2 v2.2.2
+## explicit
 gopkg.in/yaml.v2

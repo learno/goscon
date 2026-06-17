@@ -37,11 +37,16 @@ func (l *TCPListener) Accept() (conn net.Conn, err error) {
 
 	keepalive := configItemBool("tcp_option.keepalive")
 	keepaliveInterval := configItemTime("tcp_option.keepalive_interval")
+	keepaliveCount := configItemInt("tcp_option.keepalive_count")
 	readTimeout := configItemTime("tcp_option.read_timeout")
 
 	t := c.(*net.TCPConn)
-	t.SetKeepAlive(keepalive)
-	t.SetKeepAlivePeriod(keepaliveInterval)
+	t.SetKeepAliveConfig(net.KeepAliveConfig{
+		Enable:   keepalive,
+		Idle:     keepaliveInterval,
+		Interval: keepaliveInterval,
+		Count:    keepaliveCount,
+	})
 	// t.SetLinger(0)
 
 	conn = tcpConn{t, readTimeout}
