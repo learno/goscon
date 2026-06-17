@@ -4,7 +4,6 @@ package upstream
 
 import (
 	"bytes"
-	"encoding/binary"
 	"flag"
 	"net"
 	"sync"
@@ -78,7 +77,7 @@ func (s *sprotoHook) AfterConnected(local net.Conn, remote *scp.Conn) (err error
 	defer bufPool.Put(buf)
 
 	buf.Reset()
-	binary.Write(buf, binary.BigEndian, uint16(len(data)))
+	writePacketLen(buf, len(data))
 	buf.Write(data)
 	_, err = local.Write(buf.Bytes())
 	return
