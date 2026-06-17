@@ -7,13 +7,13 @@ toolchain go1.25.11
 require (
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/klauspost/reedsolomon v1.9.3 // indirect
-	github.com/libp2p/go-reuseport v0.0.1
+	github.com/libp2p/go-reuseport v0.4.0
 	github.com/prometheus/client_golang v1.0.0
 	github.com/spf13/viper v1.4.0
 	github.com/xjdrew/glog v0.0.0-20191120014404-9a6d6b19a763
 	github.com/xjdrew/gosproto v0.1.0
 	github.com/xtaci/kcp-go v5.4.20+incompatible
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
