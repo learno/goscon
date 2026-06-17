@@ -38,6 +38,11 @@ func init() {
 	viper.SetDefault("tcp_option.keepalive_interval", 60) // tcp keepalive_interval: 60s
 	viper.SetDefault("tcp_option.keepalive_count", 0)     // tcp keepalive_count: 0, use OS default
 
+	viper.SetDefault("websocket_option.read_timeout", 0)        // websocket read_timeout: 0, never timeout
+	viper.SetDefault("websocket_option.keepalive", true)        // websocket keepalive: true
+	viper.SetDefault("websocket_option.keepalive_interval", 60) // websocket keepalive_interval: 60s
+	viper.SetDefault("websocket_option.keepalive_count", 0)     // websocket keepalive_count: 0, use OS default
+
 	viper.SetDefault("kcp_option.reuseport", runtime.NumCPU()) // kcp reuseport: count of cpu, 利用端口复用的特性，同时开启多个 Goroutine 监听端口，默认为cpu核数
 	viper.SetDefault("kcp_option.read_timeout", 60)            // kcp read_timeout: 60s, 接收数据超时时间，超时会关闭客户端对应连接
 	viper.SetDefault("kcp_option.fec_data_shards", 0)          // kcp fec, disable, refer to: https://www.backblaze.com/blog/reed-solomon/

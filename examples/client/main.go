@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	crand "crypto/rand"
 	"encoding/binary"
 	"flag"
@@ -15,10 +16,76 @@ import (
 	"time"
 
 	"github.com/ejoy/goscon/scp"
+	"github.com/gobwas/ws"
 	"github.com/xjdrew/glog"
 	sproto "github.com/xjdrew/gosproto"
 	"github.com/xtaci/kcp-go"
 )
+
+type wsConn struct {
+	net.Conn
+	length int64
+	offset int64
+}
+
+func (c *wsConn) Read(b []byte) (int, error) {
+	remain := c.length - c.offset
+	if remain > 0 {
+		sz := int64(len(b))
+		if sz > remain {
+			sz = remain
+		}
+		n, err := io.ReadFull(c.Conn, b[:sz])
+		c.offset += int64(n)
+		return n, err
+	}
+
+	for {
+		header, err := ws.ReadHeader(c.Conn)
+		if err != nil {
+			return 0, err
+		}
+		switch header.OpCode {
+		case ws.OpClose:
+			return 0, io.EOF
+		case ws.OpPing:
+			payload := make([]byte, header.Length)
+			if _, err := io.ReadFull(c.Conn, payload); err != nil {
+				return 0, err
+			}
+			if err := ws.WriteFrame(c.Conn, ws.NewPongFrame(payload)); err != nil {
+				return 0, err
+			}
+			continue
+		default:
+			c.length = header.Length
+			c.offset = 0
+			sz := int64(len(b))
+			if sz > header.Length {
+				sz = header.Length
+			}
+			n, err := io.ReadFull(c.Conn, b[:sz])
+			c.offset += int64(n)
+			return n, err
+		}
+	}
+}
+
+func (c *wsConn) Write(b []byte) (int, error) {
+	f := ws.MaskFrame(ws.NewBinaryFrame(b))
+	if err := ws.WriteFrame(c.Conn, f); err != nil {
+		return 0, err
+	}
+	return len(b), nil
+}
+
+func dialWebsocket(addr string) (net.Conn, error) {
+	conn, _, _, err := ws.Dial(context.Background(), "ws://"+addr+"/")
+	if err != nil {
+		return nil, err
+	}
+	return &wsConn{Conn: conn}, nil
+}
 
 type ClientCase struct {
 	connect string
@@ -117,9 +184,12 @@ func (cc *ClientCase) testN(conn *scp.Conn, packets int) error {
 }
 
 func Dial(network, connect string) (net.Conn, error) {
-	if network == "tcp" {
+	switch network {
+	case "tcp":
 		return net.Dial(network, connect)
-	} else {
+	case "websocket":
+		return dialWebsocket(connect)
+	default:
 		return kcp.DialWithOptions(connect, nil, fecData, fecParity)
 	}
 }
@@ -276,6 +346,11 @@ func main() {
 	if len(args) > 0 && args[0] == "kcp" {
 		kcp.Parse(args[1:])
 		network = "kcp"
+	} else if len(args) > 0 && args[0] == "websocket" {
+		network = "websocket"
+		if optConnect == "127.0.0.1:1248" {
+			optConnect = "127.0.0.1:1249"
+		}
 	} else {
 		network = "tcp"
 	}

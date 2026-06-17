@@ -1,11 +1,16 @@
 manager: 127.0.0.1:6620
 tcp: 0.0.0.0:1248
 kcp: 0.0.0.0:1248
+websocket: 0.0.0.0:1249
 scp:
   handshake_timeout: 30
   reuse_time: 30
   reuse_buffer: 65536
 tcp_option:
+  read_timeout: 0
+  keepalive: true
+  keepalive_interval: 60
+websocket_option:
   read_timeout: 0
   keepalive: true
   keepalive_interval: 60

@@ -5,6 +5,8 @@ go 1.23
 toolchain go1.25.11
 
 require (
+	github.com/klauspost/cpuid v1.2.1 // indirect
+	github.com/klauspost/reedsolomon v1.9.3 // indirect
 	github.com/libp2p/go-reuseport v0.0.1
 	github.com/prometheus/client_golang v1.0.0
 	github.com/spf13/viper v1.4.0
@@ -17,10 +19,11 @@ require (
 require (
 	github.com/beorn7/perks v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
+	github.com/gobwas/httphead v0.1.0 // indirect
+	github.com/gobwas/pool v0.2.1 // indirect
+	github.com/gobwas/ws v1.1.0 // indirect
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/klauspost/cpuid v1.2.1 // indirect
-	github.com/klauspost/reedsolomon v1.9.3 // indirect
 	github.com/magiconair/properties v1.8.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
@@ -39,6 +42,6 @@ require (
 	github.com/xtaci/lossyconn v0.0.0-20190602105132-8df528c0c9ae // indirect
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 // indirect
 	golang.org/x/net v0.0.0-20191011234655-491137f69257 // indirect
-	golang.org/x/sys v0.0.0-20190412213103-97732733099d // indirect
+	golang.org/x/sys v0.0.0-20201207223542-d4d67f95c62d // indirect
 	golang.org/x/text v0.3.0 // indirect
 )
