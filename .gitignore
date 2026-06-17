@@ -4,6 +4,6 @@
 *.exe.*
 .vscode
 goscon
-client
+/client
 goscon.*.log.*
 goscon.INFO
