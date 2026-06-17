@@ -115,6 +115,25 @@ func main() {
 			}(l)
 		}
 	}
+
+	websocketListen := viper.GetString("websocket")
+	if websocketListen != "" {
+		l, err := NewWebsocketListener(websocketListen)
+		if err != nil {
+			glog.Errorf("websocket listen failed: addr=%s, err=%s", websocketListen, err.Error())
+			os.Exit(1)
+		}
+		glog.Infof("websocket listen start: addr=%s", websocketListen)
+
+		wg.Add(1)
+		go func(l net.Listener) {
+			defer l.Close()
+			defer wg.Done()
+			err := defaultServer.Serve(l)
+			glog.Errorf("websocket listen stop: addr=%s, err=%s", websocketListen, err.Error())
+		}(l)
+	}
+
 	wg.Wait()
 	glog.Flush()
 }
