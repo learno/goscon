@@ -44,6 +44,21 @@ go build -mod=vendor
 
 配置选项含义，请参考[config.go](https://github.com/ejoy/goscon/blob/master/config.go)
 
+当 WebSocket 监听置于 Nginx 等反向代理之后时，`conn.RemoteAddr()` 拿到的是代理机地址。
+可通过 `websocket_option.real_ip_header` 指定从哪个 HTTP 头解析真实客户端 IP，
+解析到的地址会透传给上游服务（`remote_addr`）：
+
+```yaml
+websocket_option:
+  # 为空表示不信任代理头，直接使用 TCP 连接地址（默认）。
+  # 置于可信反向代理之后时，可设为 X-Forwarded-For 或 X-Real-IP。
+  # X-Forwarded-For 形如 "client, proxy1, proxy2" 时取第一个 IP。
+  real_ip_header: "X-Forwarded-For"
+```
+
+> 注意：仅在确信请求经由可信代理时才开启，否则直连客户端可伪造该头。
+> Nginx 侧需配置透传，例如 `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`。
+
 * run
 ```bash
 ./goscon -logtostderr -v 10 -config config.yaml

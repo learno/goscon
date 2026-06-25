@@ -42,6 +42,7 @@ func init() {
 	viper.SetDefault("websocket_option.keepalive", true)        // websocket keepalive: true
 	viper.SetDefault("websocket_option.keepalive_interval", 60) // websocket keepalive_interval: 60s
 	viper.SetDefault("websocket_option.keepalive_count", 0)     // websocket keepalive_count: 0, use OS default
+	viper.SetDefault("websocket_option.real_ip_header", "")     // websocket real_ip_header: 为空表示不信任代理头；置于 Nginx 等反向代理之后时，可设为 X-Forwarded-For 或 X-Real-IP，从该 HTTP 头解析真实客户端 IP
 
 	viper.SetDefault("kcp_option.reuseport", runtime.NumCPU()) // kcp reuseport: count of cpu, 利用端口复用的特性，同时开启多个 Goroutine 监听端口，默认为cpu核数
 	viper.SetDefault("kcp_option.read_timeout", 60)            // kcp read_timeout: 60s, 接收数据超时时间，超时会关闭客户端对应连接
@@ -156,6 +157,17 @@ func configItemBool(name string) bool {
 		return v.(bool)
 	}
 	v := viper.GetBool(name)
+	configCache[name] = v
+	return v
+}
+
+func configItemString(name string) string {
+	configMu.Lock()
+	defer configMu.Unlock()
+	if v, ok := configCache[name]; ok {
+		return v.(string)
+	}
+	v := viper.GetString(name)
 	configCache[name] = v
 	return v
 }

@@ -1,22 +1,66 @@
 package main
 
 import (
+	"bytes"
 	"io"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/gobwas/ws"
 	"github.com/xjdrew/glog"
 )
 
+// wsAddr 表示从反向代理透传的真实客户端地址
+type wsAddr struct {
+	network string
+	addr    string
+}
+
+func (a *wsAddr) Network() string { return a.network }
+func (a *wsAddr) String() string  { return a.addr }
+
 type websocketConn struct {
 	*net.TCPConn
 	readTimeout time.Duration
+	// realIPHeader 指定从哪个 HTTP 头解析真实客户端 IP，为空表示不信任代理头
+	realIPHeader string
 
 	upgraded bool
+	realAddr net.Addr
 	length   int64
 	offset   int64
 	mask     [4]byte
+}
+
+// setRealAddr 解析反向代理透传的真实客户端 IP，并记录为 realAddr。
+// 支持 X-Forwarded-For 形式（可能为 "client, proxy1, proxy2"，取第一个），
+// 也支持已带端口的形式；仅含 IP 时用底层连接端口补齐，维持 ip:port 格式。
+func (conn *websocketConn) setRealAddr(value string) {
+	ip := value
+	if i := strings.IndexByte(ip, ','); i >= 0 {
+		ip = ip[:i]
+	}
+	ip = strings.TrimSpace(ip)
+	if ip == "" {
+		return
+	}
+
+	if _, _, err := net.SplitHostPort(ip); err != nil {
+		// 不含端口，用底层连接的端口补齐
+		if _, port, e := net.SplitHostPort(conn.TCPConn.RemoteAddr().String()); e == nil {
+			ip = net.JoinHostPort(ip, port)
+		}
+	}
+	conn.realAddr = &wsAddr{network: "tcp", addr: ip}
+}
+
+// RemoteAddr 优先返回反向代理透传的真实客户端地址，否则返回底层 TCP 地址
+func (conn *websocketConn) RemoteAddr() net.Addr {
+	if conn.realAddr != nil {
+		return conn.realAddr
+	}
+	return conn.TCPConn.RemoteAddr()
 }
 
 func readMaskData(conn *websocketConn, buf []byte, remain int64) (n int, err error) {
@@ -42,7 +86,18 @@ func (conn *websocketConn) Read(b []byte) (int, error) {
 	}
 
 	if !conn.upgraded {
-		_, err := ws.Upgrade(conn.TCPConn)
+		u := ws.Upgrader{}
+		if conn.realIPHeader != "" {
+			headerKey := []byte(conn.realIPHeader)
+			u.OnHeader = func(key, value []byte) error {
+				if bytes.EqualFold(key, headerKey) {
+					conn.setRealAddr(string(value))
+				}
+				return nil
+			}
+		}
+
+		_, err := u.Upgrade(conn.TCPConn)
 		if err != nil {
 			return 0, err
 		}
@@ -113,6 +168,7 @@ func (l *WebsocketListener) Accept() (conn net.Conn, err error) {
 	keepaliveInterval := configItemTime("websocket_option.keepalive_interval")
 	keepaliveCount := configItemInt("websocket_option.keepalive_count")
 	readTimeout := configItemTime("websocket_option.read_timeout")
+	realIPHeader := configItemString("websocket_option.real_ip_header")
 
 	t := c.(*net.TCPConn)
 	t.SetKeepAliveConfig(net.KeepAliveConfig{
@@ -127,7 +183,7 @@ func (l *WebsocketListener) Accept() (conn net.Conn, err error) {
 		glog.Infof("accept new websocket connection: addr=%s", c.RemoteAddr())
 	}
 
-	conn = &websocketConn{TCPConn: t, readTimeout: readTimeout}
+	conn = &websocketConn{TCPConn: t, readTimeout: readTimeout, realIPHeader: realIPHeader}
 	return
 }
 
