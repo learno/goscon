@@ -38,7 +38,11 @@ go build -mod=vendor
 # enable sproto hook & debug
 # go build -tags sproto,debug -mod=vendor
 
+# 后端使用 32 位大端长度字段时，启用 sproto 并指定包头格式
+go build -tags sproto,sproto_u32 -mod=vendor
 ```
+
+启用 `sproto` 后，goscon 发给后端的地址通告消息默认使用 16 位（2 字节）大端长度字段。`sproto_u32` 将该字段改为 32 位（4 字节）。当前没有 64 位（8 字节）长度字段的编译选项。
 
 * config
 
